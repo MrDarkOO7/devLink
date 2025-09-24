@@ -47,11 +47,40 @@ app.get("/feed", async (req, res) => {
   }
 });
 
-app.patch("/user", async (req, res) => {
+app.patch("/user/:userId", async (req, res) => {
   const data = req.body;
+  const userId = req.params?.userId;
+  if (userId) {
+    data.userId = userId;
+  }
+
   if (!data) {
     return res.status(400).send("user data is required");
   }
+  if (!data?.userId) {
+    return res.status(400).send("userId is required");
+  }
+
+  const ALLOWED_UPDATES = [
+    "userId",
+    "age",
+    "photoUrl",
+    "skills",
+    "bio",
+    "gender",
+  ];
+
+  const isUpdateAllowed = Object.keys(data).every((update) =>
+    ALLOWED_UPDATES.includes(update)
+  );
+
+  if (!isUpdateAllowed) {
+    return res.status(400).send("Invalid updates!");
+  }
+  if (data?.skills > 10) {
+    return res.status(400).send("Skills cannot be more than 10");
+  }
+
   console.log("Updating user with userId:", data?.userId);
   try {
     const result = await UserModel.findByIdAndUpdate(data?.userId, data);
