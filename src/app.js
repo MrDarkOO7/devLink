@@ -4,12 +4,14 @@ const connectDB = require("./config/database");
 const UserModel = require("./models/user");
 const bcrypt = require("bcrypt");
 const cookieParser = require("cookie-parser");
+const jwt = require("jsonwebtoken");
 const { validateSignupData } = require("./utils/validations");
 
 const app = express();
 app.use(express.json());
 app.use(cookieParser());
 
+// User signup
 app.post("/signup", async (req, res) => {
   console.log("Request body:", req.body);
 
@@ -34,6 +36,7 @@ app.post("/signup", async (req, res) => {
   }
 });
 
+// User login
 app.post("/login", async (req, res) => {
   const { emailId, password } = req.body;
   if (!emailId || !password) {
@@ -50,13 +53,49 @@ app.post("/login", async (req, res) => {
     if (!isPasswordCorrect) {
       return res.status(401).send("Invalid password");
     }
-    res.cookie("token", "dummy-token");
+    const auth_token = jwt.sign({ _id: user._id }, "WELCOME_TO_DEVLINK", {
+      expiresIn: 60,
+    });
+    res.cookie("auth_token", auth_token, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "Strict",
+    });
+
     res.send("User logged in successfully");
   } catch (err) {
     return res.status(500).send("Error logging in user: ", err.message);
   }
 });
 
+// Get user profile
+app.get("/profile", async (req, res) => {
+  const token = req.cookies.auth_token;
+
+  if (!token) {
+    return res.status(401).send("Unauthorized");
+  }
+
+  const decoded = jwt.verify(token, "WELCOME_TO_DEVLINK", (err, decoded) => {
+    if (err) {
+      if (err.name === "TokenExpiredError") {
+        return res.status(401).send("Token expired");
+      }
+      return res.status(401).send("Invalid token");
+    }
+    return decoded;
+  });
+  const { _id } = decoded;
+  const user = await UserModel.findById(_id);
+  if (!user) {
+    return res.status(404).send("User not found");
+  }
+
+  const { password, createdAt, updatedAt, ...userData } = user.toObject(); // Exclude sensitive fields
+  res.send(userData);
+});
+
+// Get user by email
 app.get("/user", async (req, res) => {
   const email = req.body?.emailId;
   if (!email) {
@@ -74,6 +113,7 @@ app.get("/user", async (req, res) => {
   }
 });
 
+// Get all users - feed
 app.get("/feed", async (req, res) => {
   try {
     const users = await UserModel.find({});
@@ -86,6 +126,7 @@ app.get("/feed", async (req, res) => {
   }
 });
 
+// Update user
 app.patch("/user/:userId", async (req, res) => {
   const data = req.body;
   const userId = req.params?.userId;
@@ -133,6 +174,7 @@ app.patch("/user/:userId", async (req, res) => {
   }
 });
 
+// Delete user
 app.delete("/user", async (req, res) => {
   const userId = req.body?.userId;
   if (!userId) {
