@@ -1,20 +1,59 @@
 const express = require("express");
+
 const connectDB = require("./config/database");
 const UserModel = require("./models/user");
+const bcrypt = require("bcrypt");
+const cookieParser = require("cookie-parser");
+const { validateSignupData } = require("./utils/validations");
 
 const app = express();
 app.use(express.json());
+app.use(cookieParser());
 
 app.post("/signup", async (req, res) => {
   console.log("Request body:", req.body);
-  const userData = req.body;
 
-  const user = new UserModel(userData);
+  const { valid, message } = validateSignupData(req);
+  if (!valid) {
+    return res.status(400).send(message);
+  }
+
+  const { firstName, lastName, emailId, password } = req.body;
+  const user = new UserModel({
+    firstName,
+    lastName,
+    emailId,
+    password: await bcrypt.hash(password, 10),
+  });
+
   try {
     await user.save();
     res.send("User signed up successfully");
   } catch (err) {
     res.status(400).send("Error signing up user: ", err.message);
+  }
+});
+
+app.post("/login", async (req, res) => {
+  const { emailId, password } = req.body;
+  if (!emailId || !password) {
+    return res.status(400).send("Email and password are required");
+  }
+
+  try {
+    const user = await UserModel.findOne({ emailId: emailId });
+    if (!user) {
+      return res.status(404).send("User not found");
+    }
+
+    const isPasswordCorrect = await bcrypt.compare(password, user.password);
+    if (!isPasswordCorrect) {
+      return res.status(401).send("Invalid password");
+    }
+    res.cookie("token", "dummy-token");
+    res.send("User logged in successfully");
+  } catch (err) {
+    return res.status(500).send("Error logging in user: ", err.message);
   }
 });
 

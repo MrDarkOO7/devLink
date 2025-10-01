@@ -1,10 +1,11 @@
 const mongoose = require("mongoose");
+const validate = require("validator");
 
 const { Schema } = mongoose;
 
 const userSchema = new Schema(
   {
-    firstName: { type: String, required: true, minLength: 4, maxLength: 30 },
+    firstName: { type: String, required: true, minLength: 3, maxLength: 30 },
     lastName: { type: String },
     emailId: {
       type: String,
@@ -17,13 +18,15 @@ const userSchema = new Schema(
     age: { type: Number, min: 18 },
     gender: {
       type: String,
+    },
+    photoUrl: {
+      type: String,
       validate(value) {
-        if (!["male", "female", "other"].includes(value)) {
-          throw new Error("Invalid gender");
+        if (!validate.isURL(value)) {
+          throw new Error("Invalid Photo URL");
         }
       },
     },
-    photoUrl: { type: String },
     skills: { type: [String], default: [] },
     bio: { type: String, maxLength: 250 },
   },
