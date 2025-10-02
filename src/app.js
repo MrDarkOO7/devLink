@@ -6,6 +6,7 @@ const bcrypt = require("bcrypt");
 const cookieParser = require("cookie-parser");
 const jwt = require("jsonwebtoken");
 const { validateSignupData } = require("./utils/validations");
+const { userAuth } = require("./middleware/auth");
 
 const app = express();
 app.use(express.json());
@@ -49,13 +50,16 @@ app.post("/login", async (req, res) => {
       return res.status(404).send("User not found");
     }
 
-    const isPasswordCorrect = await bcrypt.compare(password, user.password);
+    const isPasswordCorrect = await user.validatePassword(password);
     if (!isPasswordCorrect) {
       return res.status(401).send("Invalid password");
     }
-    const auth_token = jwt.sign({ _id: user._id }, "WELCOME_TO_DEVLINK", {
-      expiresIn: 60,
-    });
+
+    const auth_token = await user.getJWT();
+    if (!auth_token) {
+      return res.status(500).send("Error generating auth token");
+    }
+
     res.cookie("auth_token", auth_token, {
       httpOnly: true,
       secure: true,
@@ -69,130 +73,19 @@ app.post("/login", async (req, res) => {
 });
 
 // Get user profile
-app.get("/profile", async (req, res) => {
-  const token = req.cookies.auth_token;
+app.get("/profile", userAuth, async (req, res) => {
+  const user = req.user;
 
-  if (!token) {
-    return res.status(401).send("Unauthorized");
-  }
-
-  const decoded = jwt.verify(token, "WELCOME_TO_DEVLINK", (err, decoded) => {
-    if (err) {
-      if (err.name === "TokenExpiredError") {
-        return res.status(401).send("Token expired");
-      }
-      return res.status(401).send("Invalid token");
-    }
-    return decoded;
-  });
-  const { _id } = decoded;
-  const user = await UserModel.findById(_id);
-  if (!user) {
-    return res.status(404).send("User not found");
-  }
-
-  const { password, createdAt, updatedAt, ...userData } = user.toObject(); // Exclude sensitive fields
-  res.send(userData);
+  const userData = user.toJSON();
+  res.json(userData);
 });
 
-// Get user by email
-app.get("/user", async (req, res) => {
-  const email = req.body?.emailId;
-  if (!email) {
-    return res.status(400).send("Email is required");
-  }
-  console.log("Fetching user with email:", email);
-  try {
-    const user = await UserModel.findOne({ emailId: email });
-    if (!user) {
-      return res.status(404).send("User not found");
-    }
-    res.json(user);
-  } catch (err) {
-    return res.status(500).send("Error fetching user: ", err.message);
-  }
+app.post("/sendConnectionRequest", userAuth, async (req, res) => {
+  const user = req.user;
+  res.send(`${user.firstName} is sending connection request`);
 });
 
-// Get all users - feed
-app.get("/feed", async (req, res) => {
-  try {
-    const users = await UserModel.find({});
-    if (!users || users.length === 0) {
-      return res.status(404).send("No users found");
-    }
-    res.json(users);
-  } catch (err) {
-    return res.status(500).send("Error fetching user: ", err.message);
-  }
-});
-
-// Update user
-app.patch("/user/:userId", async (req, res) => {
-  const data = req.body;
-  const userId = req.params?.userId;
-  if (userId) {
-    data.userId = userId;
-  }
-
-  if (!data) {
-    return res.status(400).send("user data is required");
-  }
-  if (!data?.userId) {
-    return res.status(400).send("userId is required");
-  }
-
-  const ALLOWED_UPDATES = [
-    "userId",
-    "age",
-    "photoUrl",
-    "skills",
-    "bio",
-    "gender",
-  ];
-
-  const isUpdateAllowed = Object.keys(data).every((update) =>
-    ALLOWED_UPDATES.includes(update)
-  );
-
-  if (!isUpdateAllowed) {
-    return res.status(400).send("Invalid updates!");
-  }
-  if (data?.skills > 10) {
-    return res.status(400).send("Skills cannot be more than 10");
-  }
-
-  console.log("Updating user with userId:", data?.userId);
-  try {
-    const result = await UserModel.findByIdAndUpdate(data?.userId, data);
-    console.log(result);
-    if (!result) {
-      return res.status(404).send("User not found");
-    }
-    res.send("User updated successfully");
-  } catch (err) {
-    return res.status(500).send("Error updating user: ", err.message);
-  }
-});
-
-// Delete user
-app.delete("/user", async (req, res) => {
-  const userId = req.body?.userId;
-  if (!userId) {
-    return res.status(400).send("userId is required");
-  }
-  console.log("Deleting user with userId:", userId);
-  try {
-    const result = await UserModel.findByIdAndDelete(userId);
-    console.log(result);
-    if (result.deletedCount === 0) {
-      return res.status(404).send("User not found");
-    }
-    res.send("User deleted successfully");
-  } catch (err) {
-    return res.status(500).send("Error deleting user: ", err.message);
-  }
-});
-
+// Connect to database and start server
 connectDB()
   .then(() => {
     console.log("Database connected");
