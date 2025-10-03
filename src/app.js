@@ -12,8 +12,8 @@ app.use(cookieParser());
 
 // Routes
 app.use("/auth", authRoutes);
-app.use("/user", profileRoutes);
-app.use("/requests", requestRoutes);
+app.use("/profile", profileRoutes);
+app.use("/request", requestRoutes);
 
 // Connect to database and start server
 connectDB()

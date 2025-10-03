@@ -48,4 +48,51 @@ validateSignupData = (req) => {
   return { valid: true, message: "Valid data" };
 };
 
-module.exports = { validateSignupData };
+validateEditProfileData = (user) => {
+  const allowedUpdates = [
+    "firstName",
+    "lastName",
+    "age",
+    "gender",
+    "bio",
+    "skills",
+    "photoUrl",
+  ];
+  const userObj = Object.keys(user);
+  const isuserDetailsValid = userObj.every((update) =>
+    allowedUpdates.includes(update)
+  );
+
+  if (!isuserDetailsValid) {
+    throw new Error("Invalid updates!");
+  }
+
+  if (
+    user.firstName &&
+    (user.firstName.length < 3 || user.firstName.length > 30)
+  ) {
+    throw new Error("First name must be 3-30 characters long");
+  }
+  if (
+    user.lastName &&
+    (user.lastName.length < 3 || user.lastName.length > 30)
+  ) {
+    throw new Error("Last name must be 3-30 characters long");
+  }
+  if (user.age && user.age < 18) {
+    throw new Error("Age must be at least 18");
+  }
+  if (user.photoUrl && !validate.isURL(user.photoUrl)) {
+    throw new Error("Invalid Photo URL");
+  }
+  if (user.bio && user.bio.length > 250) {
+    throw new Error("Bio cannot exceed 250 characters");
+  }
+  if (user.skills && user.skills.length > 10) {
+    throw new Error("Skills cannot be more than 10");
+  }
+
+  return true;
+};
+
+module.exports = { validateSignupData, validateEditProfileData };

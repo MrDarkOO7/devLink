@@ -64,4 +64,14 @@ router.post("/login", async (req, res) => {
   }
 });
 
+// User Logout
+router.post("/logout", (req, res) => {
+  res.clearCookie("auth_token", {
+    httpOnly: true,
+    secure: true,
+    sameSite: "Strict",
+  });
+  res.send("User logged out successfully");
+});
+
 module.exports = router;
