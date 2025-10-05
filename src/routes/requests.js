@@ -56,4 +56,35 @@ router.post("/send/:status/:toUserId", userAuth, async (req, res) => {
   }
 });
 
+router.post("/review/:status/:requestId", userAuth, async (req, res) => {
+  const user = req.user;
+  const { status, requestId } = req.params;
+  if (!status || !requestId) {
+    return res.status(400).json({ message: "Missing required fields" });
+  }
+
+  const validStatuses = ["accepted", "rejected"];
+  if (!validStatuses.includes(status)) {
+    return res.status(400).json({ message: "Invalid status passed" });
+  }
+
+  try {
+    const request = await ConnectionRequest.findOne({
+      _id: requestId,
+      toUserId: user._id,
+      status: "interested",
+    });
+    if (!request) {
+      return res.status(404).json({ message: "Request not found" });
+    }
+    request.status = status;
+    const data = await request.save();
+    return res
+      .status(200)
+      .json({ message: "Connection Request " + status, data });
+  } catch (err) {
+    return res.status(500).json({ message: err.message || "Server Error" });
+  }
+});
+
 module.exports = router;
