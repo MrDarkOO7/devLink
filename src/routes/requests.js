@@ -56,6 +56,7 @@ router.post("/send/:status/:toUserId", userAuth, async (req, res) => {
   }
 });
 
+// (accept or reject) connection request by requestId
 router.post("/review/:status/:requestId", userAuth, async (req, res) => {
   const user = req.user;
   const { status, requestId } = req.params;

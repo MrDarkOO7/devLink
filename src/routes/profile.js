@@ -11,6 +11,7 @@ router.get("/view", userAuth, async (req, res) => {
   res.json(userData);
 });
 
+// Edit user profile
 router.patch("/edit", userAuth, async (req, res) => {
   const userDoc = req.user;
   const userNew = req?.body;
