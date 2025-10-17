@@ -41,7 +41,7 @@ userSchema.methods.getJWT = async function () {
     { _id: user._id.toString() },
     "WELCOME_TO_DEVLINK",
     {
-      expiresIn: "1h",
+      expiresIn: "1d",
     }
   );
   return token;

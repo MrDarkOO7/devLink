@@ -55,11 +55,7 @@ router.post("/login", async (req, res) => {
       return res.status(500).send("Error generating auth token");
     }
 
-    res.cookie("auth_token", auth_token, {
-      httpOnly: true,
-      secure: true,
-      sameSite: "Strict",
-    });
+    res.cookie("auth_token", auth_token,{expires: new Date(Date.now() + 8 * 3600000)});
 
     res.json({ data: data, message: "User logged in successfully" });
   } catch (err) {
@@ -70,9 +66,7 @@ router.post("/login", async (req, res) => {
 // User Logout
 router.post("/logout", (req, res) => {
   res.clearCookie("auth_token", {
-    httpOnly: true,
-    secure: true,
-    sameSite: "Strict",
+    expires: new Date(Date.now())
   });
   res.send("User logged out successfully");
 });
