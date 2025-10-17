@@ -1,6 +1,7 @@
 const express = require("express");
 
 const connectDB = require("./config/database");
+const cors = require("cors");
 const cookieParser = require("cookie-parser");
 const authRoutes = require("./routes/auth");
 const profileRoutes = require("./routes/profile");
@@ -8,8 +9,18 @@ const requestRoutes = require("./routes/requests");
 const userRoutes = require("./routes/user");
 
 const app = express();
+const corsOptions = {
+  origin: ["http://localhost:5173", "http://127.0.0.1:5173"],
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+  credentials: true,
+  optionsSuccessStatus: 204,
+};
+
+// Apply middleware
 app.use(express.json());
 app.use(cookieParser());
+app.use(cors(corsOptions));
 
 // Routes
 app.use("/auth", authRoutes);
@@ -27,18 +38,3 @@ connectDB()
   .catch((err) => {
     console.log("Database connection error:", err);
   });
-
-// // Middleware to handle CORS
-// app.use((req, res, next) => {
-//   res.header("Access-Control-Allow-Origin", "http://localhost:3000");
-//   res.header(
-//     "Access-Control-Allow-Headers",
-//     "Origin, X-Requested-With, Content-Type, Accept"
-//   );
-//   res.header("Access-Control-Allow-Credentials", "true");
-//   if (req.method === "OPTIONS") {
-//     res.header("Access-Control-Allow-Methods", "PUT, POST, PATCH, DELETE, GET");
-//     return res.status(200).json({});
-//   }
-//   next();
-// });

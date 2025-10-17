@@ -35,7 +35,7 @@ userRoutes.get("/connections", userAuth, async (req, res) => {
       ],
     }).populate(
       "fromUserId toUserId",
-      "firstName lastName profilePicture headline"
+      "firstName lastName photoUrl bio gender"
     );
 
     const formattedConnections = connections.map((connection) => {
@@ -47,10 +47,13 @@ userRoutes.get("/connections", userAuth, async (req, res) => {
         _id: otherUser._id,
         firstName: otherUser.firstName,
         lastName: otherUser.lastName,
-        profilePicture: otherUser.profilePicture,
-        headline: otherUser.headline,
+        photoUrl: otherUser.photoUrl,
+        bio: otherUser.bio,
+        gender: otherUser.gender,
       };
     });
+
+    console.log("formatted Connections", formattedConnections);
 
     return res.status(200).json({
       message: "Connections fetched successfully",
@@ -88,7 +91,7 @@ userRoutes.get("/feed", userAuth, async (req, res) => {
     const suggestions = await User.find({
       _id: { $nin: Array.from(excludedUserIds) },
     })
-      .select("firstName lastName profilePicture headline")
+      .select("firstName lastName photoUrl bio gender skills")
       .limit(limit)
       .skip(skip);
 

@@ -23,7 +23,7 @@ router.post("/signup", async (req, res) => {
 
   try {
     await user.save();
-    res.send("User signed up successfully");
+    res.json({ message: "User signed up successfully" });
   } catch (err) {
     res.status(400).send("Error signing up user: ", err.message);
   }
@@ -32,6 +32,7 @@ router.post("/signup", async (req, res) => {
 // User login
 router.post("/login", async (req, res) => {
   const { emailId, password } = req.body;
+
   if (!emailId || !password) {
     return res.status(400).send("Email and password are required");
   }
@@ -41,6 +42,8 @@ router.post("/login", async (req, res) => {
     if (!user) {
       return res.status(404).send("User not found");
     }
+
+    const data = await user.toJSON();
 
     const isPasswordCorrect = await user.validatePassword(password);
     if (!isPasswordCorrect) {
@@ -58,7 +61,7 @@ router.post("/login", async (req, res) => {
       sameSite: "Strict",
     });
 
-    res.send("User logged in successfully");
+    res.json({ data: data, message: "User logged in successfully" });
   } catch (err) {
     return res.status(500).send("Error logging in user: ", err.message);
   }
