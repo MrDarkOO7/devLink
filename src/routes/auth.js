@@ -4,6 +4,22 @@ const bcrypt = require("bcrypt");
 const { validateSignupData } = require("../utils/validations");
 const router = express.Router();
 
+const isProd = true;
+
+const cookieOptions = {
+  expires: new Date(Date.now() + 8 * 3600000), 
+  httpOnly: true,
+  secure: true,
+  sameSite: "none"
+};
+
+const cookieOptionsExpire = {
+  expires: new Date(Date.now()),
+  httpOnly: true,
+  secure: true,
+  sameSite:  "none" 
+};
+
 // User signup
 router.post("/signup", async (req, res) => {
   console.log("Request body:", req.body);
@@ -55,7 +71,7 @@ router.post("/login", async (req, res) => {
       return res.status(500).send("Error generating auth token");
     }
 
-    res.cookie("auth_token", auth_token,{expires: new Date(Date.now() + 8 * 3600000)});
+    res.cookie("auth_token", auth_token,cookieOptions);
 
     res.json({ data: data, message: "User logged in successfully" });
   } catch (err) {
@@ -65,9 +81,7 @@ router.post("/login", async (req, res) => {
 
 // User Logout
 router.post("/logout", (req, res) => {
-  res.clearCookie("auth_token", {
-    expires: new Date(Date.now())
-  });
+  res.clearCookie("auth_token", cookieOptionsExpire);
   res.send("User logged out successfully");
 });
 
