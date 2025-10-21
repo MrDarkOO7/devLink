@@ -39,7 +39,7 @@ userSchema.methods.getJWT = async function () {
   const user = this;
   const token = await jwt.sign(
     { _id: user._id.toString() },
-    "WELCOME_TO_DEVLINK",
+    process.env.JWT_SECRET_KEY,
     {
       expiresIn: "1d",
     }

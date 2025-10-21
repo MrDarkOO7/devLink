@@ -1,4 +1,6 @@
+require("dotenv").config();
 const express = require("express");
+
 
 const connectDB = require("./config/database");
 const cors = require("cors");
@@ -9,15 +11,13 @@ const requestRoutes = require("./routes/requests");
 const userRoutes = require("./routes/user");
 
 const app = express();
-// Allowed origins (no trailing slashes)
-// include your local dev host(s) and the deployed host(s)
 const allowedOrigins = [
   "http://localhost:5173",
   "http://127.0.0.1:5173",
-  "http://localhost:3000",      // add if you use port 3000 sometimes
+  "http://localhost:3000",
   "http://127.0.0.1:3000",
   "http://44.220.134.112",
-  "https://44.220.134.112"      // include https variant if you serve over TLS
+  "https://44.220.134.112" 
 ];
 
 // dynamic origin checking (this echoes origin when allowed — required for credentials)
@@ -42,9 +42,7 @@ const corsOptions = {
 // Apply middleware
 app.use(express.json());
 app.use(cookieParser());
-app.use(cors(corsOptions));       // <-- pass options here
-// app.options("*", cors(corsOptions)); 
-// app.use(cors());
+app.use(cors(corsOptions));
 
 // Routes
 app.use("/auth", authRoutes);
