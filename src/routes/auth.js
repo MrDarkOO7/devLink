@@ -56,14 +56,14 @@ router.post("/login", async (req, res) => {
     }
 
     res.cookie("auth_token", auth_token, {
-      maxAge: 900000,
-      secure:true,
-      sameSite:"none",
+      maxAge: 24 * 60 * 60 * 1000,
+      secure: true,
+      sameSite: "none",
     });
 
     res.json({ data: data, message: "User logged in successfully" });
   } catch (err) {
-    console.log("Error logging in ",err);
+    console.log("Error logging in ", err);
     return res.status(500).send("Error logging in user: ", err.message);
   }
 });
@@ -72,8 +72,8 @@ router.post("/login", async (req, res) => {
 router.post("/logout", (req, res) => {
   res.cookie("auth_token", null, {
     maxAge: new Date(Date.now()),
-    secure:true,
-    sameSite:"none",
+    secure: true,
+    sameSite: "none",
   });
   res.send("User logged out successfully");
 });
