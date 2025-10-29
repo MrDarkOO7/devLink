@@ -53,7 +53,7 @@ userRoutes.get("/connections", userAuth, async (req, res) => {
       };
     });
 
-    console.log("formatted Connections", formattedConnections);
+    // console.log("formatted Connections", formattedConnections);
 
     return res.status(200).json({
       message: "Connections fetched successfully",
