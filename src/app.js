@@ -5,13 +5,13 @@ const connectDB = require("./config/database");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
 const http = require("http");
-const authRoutes = require("./routes/auth");
-const profileRoutes = require("./routes/profile");
-const requestRoutes = require("./routes/requests");
-const userRoutes = require("./routes/user");
-const chatRoutes = require("./routes/chat");
+const authRoutes = require("./routes/authRoutes");
+const profileRoutes = require("./routes/profileRoutes");
+const requestRoutes = require("./routes/requestsRoutes");
+const userRoutes = require("./routes/userRoutes");
+const chatRoutes = require("./routes/chatRoutes");
 const corsOptions = require("./utils/cors");
-const initializeSocket = require("./utils/socket");
+const initializeSocket = require("./sockets/chatSocket");
 
 const app = express();
 
