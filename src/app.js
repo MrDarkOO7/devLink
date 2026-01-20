@@ -10,8 +10,9 @@ const profileRoutes = require("./routes/profileRoutes");
 const requestRoutes = require("./routes/requestsRoutes");
 const userRoutes = require("./routes/userRoutes");
 const chatRoutes = require("./routes/chatRoutes");
+const notificationRoutes = require("./routes/notification");
 const corsOptions = require("./utils/cors");
-const initializeSocket = require("./sockets/chatSocket");
+const { initializeSocket } = require("./sockets/Socket");
 
 const app = express();
 
@@ -26,6 +27,7 @@ app.use("/profile", profileRoutes);
 app.use("/request", requestRoutes);
 app.use("/user", userRoutes);
 app.use("/chat", chatRoutes);
+app.use("/notifications", notificationRoutes);
 
 const server = http.createServer(app);
 initializeSocket(server);
